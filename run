@@ -119,4 +119,4 @@ if exitCode == 0:
     if os.path.isdir(fileName + '.dSYM'):
         shutil.rmtree(fileName + '.dSYM')
 else:
-    exit(exitCode)
+    exit('Compilation error!')
