@@ -1,0 +1,121 @@
+#! /usr/bin/env python
+# This program is a program to compile a c file file and test it with the following features:
+# 1. use the system's comiler to compile the file, with proriety: clang > gcc > icp.
+# 2. use the system's login shell to run the file
+# 3. c compiler for c file, c++ compiler for cpp/cc file.
+# 4. clean up the executable file after running if not specified otherwise
+# 5. default compile flags: -Wall -Wextra -std=c++11 -Og -ggdb
+
+# import the necessary libraries
+import os
+import argparse
+import shutil
+import sys
+
+
+def checkExtension(file):
+    # function check the target file's extension
+    if file.endswith('.c'):
+        return 'c'
+    elif file.endswith('.cc') or file.endswith('.cpp'):
+        return 'cc'
+    else:
+        exit('The file is not a c or c++ file!')
+
+
+def checkCC():
+    # check if the compiler is available
+    if shutil.which('clang') is not None:
+        return 'clang'
+    elif shutil.which('gcc') is not None:
+        return 'gcc'
+    elif shutil.which('icx') is not None:
+        return 'icx'
+    else:
+        exit('No C compiler found!')
+
+
+def checkCXX():
+    # check if the compiler is available
+    if shutil.which('clang++') is not None:
+        return 'clang++'
+    elif shutil.which('g++') is not None:
+        return 'g++'
+    elif shutil.which('icpx') is not None:
+        return 'icpx'
+    else:
+        exit('No C++ compiler found!')
+
+
+def parseArgs():
+    parser = argparse.ArgumentParser(description='Compile and run a c/c++ file')
+    parser.add_argument('file', help='the file to be compiled and run')
+    parser.add_argument('-c', '--clean', action='store_true')
+    # help message for the the program
+    parser.add_argument('-m', '--message', action='store_true')
+    # compiler flags
+    parser.add_argument('-f', '--flags', nargs='*', help='the flags to be passed to the compiler')
+    args = parser.parse_args()
+    return args
+
+
+def printHelp():
+    print('This program is a program to compile a c file file and test it with the following features:')
+    print('1. use the system\'s comiler to compile the file, with proriety: clang > gcc > icp.')
+    print('2. use the system\'s login shell to run the file')
+    print('3. c compiler for c file, c++ compiler for cpp/cc file.')
+    print('4. clean up the executable file after running if not specified otherwise')
+    print('5. default compile flags: -Wall -Wextra -Werror -std=c++11 (if input file is cc or cpp) -Og -ggdb')
+    print('Usage: testRun.py [options] file')
+    print('Options:')
+    print('-c, --clean\t\tclean up the executable file after running')
+    print('-m, --message\t\tprint the help message')
+    print('-f, --flags\t\tthe flags to be passed to the compiler')
+
+
+# main work flow
+# first check if the user wants to print the help message
+args = parseArgs()
+if args.message:
+    printHelp()
+    exit(0)
+# check if the file exists
+# if not specify the file argument, use the first argument as the file
+if args.file is None:
+    args.file = sys.argv[1]
+if not os.path.isfile(args.file):
+    exit('File not found!')
+# check the file extension and choose the compiler
+if checkExtension(args.file) == 'c':
+    compiler = checkCC()
+elif checkExtension(args.file) == 'cc':
+    compiler = checkCXX()
+# get the file name without redundant extension
+fileName = args.file.split('.')[0]
+# compile the file
+if args.flags is None:
+    if checkExtension(args.file) == 'c':
+        os.system(compiler + ' -Wall -Wextra -Og -ggdb ' + args.file + ' -o ' + fileName)
+    elif checkExtension(args.file) == 'cc':
+        os.system(compiler + ' -Wall -Wextra -std=c++11 -Og -ggdb ' + args.file + ' -o ' + fileName)
+else:
+    if checkExtension(args.file) == 'c':
+        os.system(compiler + ' -Wall -Wextra -Og -ggdb ' +
+                  ' '.join(args.flags) + ' ' + args.file + ' -o ' + fileName)
+    elif checkExtension(args.file) == 'cc':
+        os.system(compiler + ' -Wall -Wextra -std=c++11 -Og -ggdb ' +
+                  ' '.join(args.flags) + ' ' + args.file + ' -o ' + fileName)
+# run the file
+os.system('./' + fileName)
+# clean up the executable file if specified
+if args.clean:
+    os.remove(fileName)
+    exit(0)
+os.remove(fileName)
+# forcely to remove the stupic .dSYM folder
+if os.path.isdir(fileName + '.dSYM'):
+    shutil.rmtree(fileName + '.dSYM')
+
+
+
+

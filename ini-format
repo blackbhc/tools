@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+# a python toy script for automatic formatting of INI parameter file.
+
+import sys
+
+commenters = ["#", ";"]
+
+editCommands = ["-e", "-edit", "--edit", "-E", "-i", "-insert", "--insert", "-I"]
+helpCommands = ["-h", "-help", "--help"]
+versionCommands = ["-v", "-version", "--version"]
+arguments = editCommands + helpCommands + versionCommands
+
+minSpace = 3  # min white space between value and tailComment
+
+
+def is_comment(line):
+    # Check if the line is a comment
+    line = line.lstrip()  # Remove leading white space
+    for i in commenters:
+        if line.startswith(i):
+            return True
+    return False
+
+
+def is_empty(line):
+    # Check if the line is empty
+    line = line.lstrip()
+    if line == "":
+        return True
+    return False
+
+
+hasContent = lambda line: not (is_comment(line) or is_empty(line))
+# Check if the line has content
+trueContent = lambda line: hasContent(line) and line.find("=") != -1
+# Check whether there is a key value pair
+noContent = lambda line: is_comment(line) or is_empty(line)
+
+
+def parseContentComment(line):
+    # Split the line into content and comment
+    for i in commenters:
+        if i in line:
+            index = line.find(i)
+            return parseKeyValue(line[:index]), (line[index:]).strip()
+            # return content, comment
+    return parseKeyValue(line), ""
+
+
+def parseKeyValue(line):
+    # Split the line into key and value
+    try:
+        index = line.find("=")
+        return (line[:index]).strip(), (line[index + 1 :]).strip()
+    except:
+        exit("Error: Invalid line format.")
+
+
+def update_file(file, content):
+    # Update the file with the new content
+    file.seek(0)
+    file.truncate()
+    file.writelines(content)
+
+
+def printList(lists):
+    for i in lists:
+        print(i)
+
+
+def printHelp():
+    print("Usage: iniFormatter [options] [file1] [file2] ...")
+    print("Options:")
+    print("  -e, -edit, --edit, -E, -i, -insert, --insert, -I")
+    print("    Edit the file in place.")
+    print("  -h, -help, --help")
+    print("    Print this help information.")
+    print("  -v, -version, --version")
+    print("    Print the version information.")
+
+
+def printVersion():
+    print("iniFormatter v1.0")
+
+
+if len(sys.argv) == 1:
+    print("Error: No input file.")
+    printHelp()
+    exit()
+else:
+    argvs = sys.argv[1:]
+
+for i in argvs:
+    editFile = False
+    helpInfo = False
+    versionInfo = False
+    for j in editCommands:
+        if j in argvs:
+            editFile = True
+            argvs.remove(j)
+    for j in helpCommands:
+        if j in argvs:
+            helpInfo = True
+            argvs.remove(j)
+        if helpInfo:
+            printHelp()
+            exit()
+    for j in versionCommands:
+        if j in argvs:
+            versionInfo = True
+            argvs.remove(j)
+        if versionInfo:
+            printVersion()
+            exit()
+
+for i in argvs:
+    with open(i, "r+") as file:
+        content = file.readlines()  # read the file lines into a list
+
+        # calculate the max length of key and value
+        maxKeyLength = 0
+        maxValueLength = 0
+        for line in content:
+            if trueContent(line):
+                (key, value), tailComment = parseContentComment(line)
+                if len(key) > maxKeyLength:
+                    maxKeyLength = len(key)
+                if len(value) > maxValueLength:
+                    maxValueLength = len(value)
+
+        for i, line in enumerate(content):
+            if trueContent(line):
+                (key, value), tailComment = parseContentComment(line)
+                key = key.ljust(maxKeyLength)
+                if tailComment != "":
+                    value = value.ljust(maxValueLength)
+                    tailComment = " " * minSpace + tailComment
+                content[i] = key + " = " + value + tailComment + "\n"
+            elif (is_empty(line)) == False:
+                content[
+                    i
+                ] = (
+                    line.lstrip()
+                )  # remove the leading white space of a no key=value line
+
+        if editFile:
+            update_file(file, content)
+        else:
+            printList(content)
