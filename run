@@ -92,30 +92,31 @@ elif checkExtension(args.file) == 'cc':
     compiler = checkCXX()
 # get the file name without redundant extension
 fileName = args.file.split('.')[0]
-# compile the file
+# compile the file and storage the exit code
+exitCode = 0
 if args.flags is None:
     if checkExtension(args.file) == 'c':
-        os.system(compiler + ' -Wall -Wextra -Og -ggdb ' + args.file + ' -o ' + fileName)
+        exitCode = os.system(compiler + ' -Wall -Wextra -Og -ggdb ' + args.file + ' -o ' + fileName)
     elif checkExtension(args.file) == 'cc':
-        os.system(compiler + ' -Wall -Wextra -std=c++11 -Og -ggdb ' + args.file + ' -o ' + fileName)
+        exitCode = os.system(compiler + ' -Wall -Wextra -std=c++11 -Og -ggdb ' +
+                             args.file + ' -o ' + fileName)
 else:
     if checkExtension(args.file) == 'c':
-        os.system(compiler + ' -Wall -Wextra -Og -ggdb ' +
-                  ' '.join(args.flags) + ' ' + args.file + ' -o ' + fileName)
+        exitCode = os.system(compiler + ' -Wall -Wextra -Og -ggdb ' +
+                             ' '.join(args.flags) + ' ' + args.file + ' -o ' + fileName)
     elif checkExtension(args.file) == 'cc':
-        os.system(compiler + ' -Wall -Wextra -std=c++11 -Og -ggdb ' +
-                  ' '.join(args.flags) + ' ' + args.file + ' -o ' + fileName)
+        exitCode = os.system(compiler + ' -Wall -Wextra -std=c++11 -Og -ggdb ' +
+                             ' '.join(args.flags) + ' ' + args.file + ' -o ' + fileName)
 # run the file
-os.system('./' + fileName)
-# clean up the executable file if specified
-if args.clean:
+if exitCode == 0:
+    os.system('./' + fileName)
+    # clean up the executable file if specified
+    if args.clean:
+        os.remove(fileName)
+        exit(0)
     os.remove(fileName)
-    exit(0)
-os.remove(fileName)
-# forcely to remove the stupic .dSYM folder
-if os.path.isdir(fileName + '.dSYM'):
-    shutil.rmtree(fileName + '.dSYM')
-
-
-
-
+    # forcely to remove the stupic .dSYM folder
+    if os.path.isdir(fileName + '.dSYM'):
+        shutil.rmtree(fileName + '.dSYM')
+else:
+    exit(exitCode)
