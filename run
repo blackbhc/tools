@@ -96,6 +96,8 @@ elif checkExtension(args.file) == 'cc':
 fileName = args.file.split('.')[0]
 # compile the file and storage the exit code
 exitCode = 0
+print('-'*80, '\nStart to compile the file with ' +
+      compiler + '.\n', '-'*80, sep='')
 if args.flags is None:
     if checkExtension(args.file) == 'c':
         exitCode = os.system(
