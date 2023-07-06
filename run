@@ -113,7 +113,7 @@ else:
 # run the file
 if exitCode == 0:
     # print a line to separate the output
-    print("-" * 80, "\nStart to run the program.\n", "-" * 80)
+    print("-" * 80, "\nStart to run the program.\n", "-" * 80, sep='')
     os.system('./' + fileName)
     # clean up the executable file if specified
     if args.clean:
