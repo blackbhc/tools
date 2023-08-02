@@ -123,9 +123,9 @@ if exitCode == 0:
     print("-" * 80, "\nStart to run the program.\n", "-" * 80, sep='')
     # run the program with the arguments
     if args.args is None:
-        os.system('./' + fileName)
+        exitCode = os.system('./' + fileName)
     else:
-        os.system('./' + fileName + ' ' + ' '.join(args.args))
+        exitCode = os.system('./' + fileName + ' ' + ' '.join(args.args))
 
     # clean up the executable file if specified
     if args.save is True:
