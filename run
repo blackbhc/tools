@@ -50,8 +50,12 @@ def checkCXX():
 def parseArgs():
     parser = argparse.ArgumentParser(
         description='Compile and run a c/c++ file')
+    # file name of the target file
     parser.add_argument('file', help='the file to be compiled and run')
-    parser.add_argument('-c', '--clean', action='store_true')
+    # arguments of the program
+    parser.add_argument('-a', '--args', nargs='*', help='the arguments of the program')
+    # save the executable file after running if given a flag 
+    parser.add_argument('-s', '--save', action='store_true', help='save the executable file after running if given flag, default is false')
     # help message for the the program
     parser.add_argument('-m', '--message', action='store_true')
     # compiler flags
@@ -70,7 +74,8 @@ def printHelp():
     print('5. default compile flags: -Wall -Wextra -Werror -std=c++11 (if input file is cc or cpp) -Og -ggdb')
     print('Usage: testRun.py [options] file')
     print('Options:')
-    print('-c, --clean\t\tclean up the executable file after running')
+    print('-a, --args\t\tthe arguments of the program')
+    print("-s, --save\t\tsave the executable file after running if given a flag, default is false")
     print('-m, --message\t\tprint the help message')
     print('-f, --flags\t\tthe flags to be passed to the compiler')
 
@@ -116,14 +121,20 @@ else:
 if exitCode == 0:
     # print a line to separate the output
     print("-" * 80, "\nStart to run the program.\n", "-" * 80, sep='')
-    os.system('./' + fileName)
+    # run the program with the arguments
+    if args.args is None:
+        os.system('./' + fileName)
+    else:
+        os.system('./' + fileName + ' ' + ' '.join(args.args))
+
     # clean up the executable file if specified
-    if args.clean:
+    if args.save is True:
+        print("Executable file saved as " + fileName)
+    else:
         os.remove(fileName)
-        exit(0)
-    os.remove(fileName)
     # forcely to remove the stupic .dSYM folder
     if os.path.isdir(fileName + '.dSYM'):
         shutil.rmtree(fileName + '.dSYM')
+    exit(exitCode)
 else:
-    exit('Compilation error!')
+    exit('Compilation error with exit code ' + str(exitCode) + '!')
